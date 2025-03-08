@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Kiosco Ian - Concarán</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Navegación -->
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Mini Kiosco Ian</h1>
+            <ul class="flex space-x-4">
+                <li><a href="index.html" class="hover:text-blue-200">Inicio</a></li>
+                <li>
+                    <a href="cart.html" class="hover:text-blue-200 flex items-center">
+                        Carrito
+                        <span id="cartCount" class="ml-2 bg-red-500 rounded-full px-2 py-1 text-xs"></span>
+                    </a>
+                </li>
+                <li><a href="delivery.html" class="hover:text-blue-200">Delivery</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="bg-white py-12">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-8">Bienvenidos a Mini Kiosco Ian</h2>
+            <p class="text-xl text-center text-gray-600">Tu kiosco de confianza en Concarán</p>
+        </div>
+    </div>
+
+    <!-- Categorías -->
+    <div class="container mx-auto px-4 py-8">
+        <h3 class="text-2xl font-bold mb-6">Categorías</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <button class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition" onclick="filtrarProductos('Bebidas')">
+                Bebidas
+            </button>
+            <button class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition" onclick="filtrarProductos('Golosinas')">
+                Golosinas
+            </button>
+            <button class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition" onclick="filtrarProductos('Snacks')">
+                Snacks
+            </button>
+            <button class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition" onclick="filtrarProductos('Todos')">
+                Ver Todo
+            </button>
+        </div>
+    </div>
+
+    <!-- Productos -->
+    <div id="productos" class="container mx-auto px-4 py-8"></div>
+
+    <script type="text/babel">
+        function ProductosComponent() {
+            const [productos, setProductos] = React.useState([
+                { id: 1, nombre: "Coca-Cola 500ml", precio: 400, categoria: "Bebidas", imagen: "coca-cola.jpg" },
+                { id: 2, nombre: "Alfajor Guaymallen", precio: 150, categoria: "Golosinas", imagen: "alfajor.jpg" },
+                { id: 3, nombre: "Papas Lays", precio: 350, categoria: "Snacks", imagen: "papas.jpg" },
+                { id: 4, nombre: "Chocolate Block", precio: 250, categoria: "Golosinas", imagen: "chocolate.jpg" },
+                { id: 5, nombre: "Sprite 500ml", precio: 400, categoria: "Bebidas", imagen: "sprite.jpg" },
+                { id: 6, nombre: "Doritos", precio: 380, categoria: "Snacks", imagen: "doritos.jpg" }
+            ]);
+
+            const [productosFiltrados, setProductosFiltrados] = React.useState(productos);
+            const [categoriaActual, setCategoriaActual] = React.useState('Todos');
+
+            React.useEffect(() => {
+                // Actualizar contador del carrito al cargar
+                actualizarContadorCarrito();
+            }, []);
+
+            const filtrarProductos = (categoria) => {
+                setCategoriaActual(categoria);
+                if (categoria === 'Todos') {
+                    setProductosFiltrados(productos);
+                } else {
+                    setProductosFiltrados(productos.filter(p => p.categoria === categoria));
+                }
+            };
+
+            const agregarAlCarrito = (producto) => {
+                let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+                
+                // Buscar si el producto ya está en el carrito
+                const index = carrito.findIndex(item => item.id === producto.id);
+                
+                if (index !== -1) {
+                    // Si el producto ya está, incrementar cantidad
+                    carrito[index].cantidad += 1;
+                } else {
+                    // Si no está, agregarlo con cantidad 1
+                    carrito.push({...producto, cantidad: 1});
+                }
+                
+                localStorage.setItem('carrito', JSON.stringify(carrito));
+                actualizarContadorCarrito();
+                alert('Producto agregado al carrito');
+            };
+
+            const actualizarContadorCarrito = () => {
+                const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+                const total = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+                document.getElementById('cartCount').textContent = total;
+            };
+
+            // Hacer disponible la función de filtrado globalmente
+            window.filtrarProductos = filtrarProductos;
+
+            return (
+                <div>
+                    <h3 class="text-2xl font-bold mb-6">
+                        {categoriaActual === 'Todos' ? 'Todos los Productos' : `Categoría: ${categoriaActual}`}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {productosFiltrados.map(producto => (
+                            <div key={producto.id} class="bg-white rounded-lg shadow-lg p-4 hover:shadow-xl transition">
+                                <div class="aspect-w-1 aspect-h-1 mb-4">
+                                    <img
+                                        src={`/images/${producto.imagen}`}
+                                        alt={producto.nombre}
+                                        class="object-cover rounded-lg w-full h-48"
+                                        onError={(e) => e.target.src = 'https://via.placeholder.com/150'}
+                                    />
+                                </div>
+                                <h4 class="font-semibold mb-2">{producto.nombre}</h4>
+                                <p class="text-gray-600 mb-4">${producto.precio}</p>
+                                <button 
+                                    onClick={() => agregarAlCarrito(producto)}
+                                    class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                                >
+                                    Agregar al carrito
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<ProductosComponent />, document.getElementById('productos'));
+    </script>
+</body>
+</html>
